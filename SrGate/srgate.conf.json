@@ -1,0 +1,32 @@
+{
+    "dlib": {
+        "models": {
+            "directory": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/dlib",
+            "shape_predictor": "shape_predictor_5_face_landmarks.dat",
+            "anet": "dlib_face_recognition_resnet_model_v1.dat"
+        }
+    },
+    "opencv": {
+        "models": {
+            "directory": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/opencv",
+            "haarcascade": "frontalface.xml"
+        },
+        "camera": {
+            "width": "auto",
+            "height": "auto",
+            "fps": "auto",
+            "device": 0
+        }
+    },
+    "database": {
+        "path": "$HOME_DIR/.config/srgate/database.rl",
+        "front_refresh": "always"
+    },
+    "logging": {
+        "main": "sent",
+        "descriptor": false,
+        "db": false,
+        "base64": false,
+        "image": false
+    }
+}

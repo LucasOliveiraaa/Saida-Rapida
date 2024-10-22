@@ -1,0 +1,24 @@
+project ReconEye
+build_dir build
+
+# Configuring the workspace
+use cxx_compiler g++
+
+# Include OpenCV
+includes /usr/include/opencv4
+
+# Adding OpenCV compile flags
+assign opencv_cflags run "pkg-config --cflags opencv4"
+use compiler_flags (opencv_cflags)
+
+# Adding OpenCV libs, Dlib, Zlib, ZeroMQ and Openblas
+assign opencv_libs run "pkg-config --libs opencv4"
+push link_libs (opencv_libs)
+push link_libs "-lopenblas -ldlib -lzmq -lz"
+
+# Setting sources
+includes include
+sources src/*.cpp
+
+compile
+link_executable
