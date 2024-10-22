@@ -11,10 +11,13 @@
 #include <zlib.h>
 #include <zmq.h>
 
+#include "nlohmann/json.hpp"
+
+#include "base64.hpp"
 #include "config.hpp"
 #include "db.hpp"
 #include "descriptor.hpp"
-#include "nlohmann/json.hpp"
+#include "image.hpp"
 
 std::vector<unsigned char> gzip_compress(const std::string &data) {
   uLongf compressed_size = compressBound(data.size());
@@ -48,7 +51,7 @@ int main(int argc, char *argv[]) {
   std::filesystem::path base = config["opencv"]["models"]["directory"];
   std::filesystem::path haarcascade = config["opencv"]["models"]["haarcascade"];
   cv::CascadeClassifier cascade((base / haarcascade).string());
-  cv::VideoCapture cap(config["opencv"]["camera"]["device"]);
+  cv::VideoCapture cap(config["opencv"]["camera"]["device"].get<int>());
 
   if (!cap.isOpened()) {
     std::cerr << "Error: Failed to open camera" << std::endl;
@@ -84,8 +87,7 @@ int main(int argc, char *argv[]) {
       cv::rectangle(frame, rect, cv::Scalar(0, 0, 255), 1);
     }
 
-    nlohmann::json json = {{"matches", {}}, {"frame", encode_base64(frame)}};
-
+    std::vector<nlohmann::json> matches_array;
     for (const auto &face : faces) {
       // Describe face
       Image dlib_img = to_dlib(face);
@@ -101,12 +103,17 @@ int main(int argc, char *argv[]) {
       if (id.empty())
         continue;
 
-      std::vector<unsigned char> binary = desc->binary();
+      std::vector<unsigned char> binary = desc->bytes();
       std::string binary_encoded = encode_base64(binary);
 
-      json["matches"].push_back({{"id", id}, {"binary", binary_encoded}});
+      nlohmann::json match_obj;
+      match_obj["id"] = id;
+      match_obj["binary"] = binary_encoded;
+      matches_array.push_back(match_obj);
     }
 
+    nlohmann::json json = {{"matches", matches_array},
+                           {"frame", encode_base64(frame)}};
     std::string serialized = json.dump();
     std::vector<unsigned char> data = gzip_compress(serialized);
 
