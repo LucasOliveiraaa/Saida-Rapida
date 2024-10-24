@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-app.js";
-import { getFirestore, doc, collection, onSnapshot, query, where, orderBy, limit, getDocs, getDoc , setDoc} from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
+import { getFirestore, doc, collection, onSnapshot, query, where, orderBy, limit, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA2nl8t6BDKGqyg_f1hxlRcC9v6DuwVkJg",
@@ -21,7 +21,7 @@ let alunos = []
 let arrayaleatorio = []
 
 let unsubscribeResponsavel //Vai na fé e fodasse
-let unsubscribeDependents = onSnapshot(collection(db, "NIL"), () => {}) //ta funcionando, não mexe
+let unsubscribeDependents = onSnapshot(collection(db, "NIL"), () => { }) //ta funcionando, não mexe
 
 class Consulta {
   constructor(IDEscola) {
@@ -38,17 +38,17 @@ class Consulta {
 
   getDependentsNameConfig(arrDependents) {
     console.log("dependentsnameconfig")
-/*    qDependents = query(collection(this.escola, "alunos"), where("turma", 'in', arrDependentes));
-
-    unsubscribeDependents = onSnapshot(qDependents, (querySnapshot) => {
-      alunos.length = 0 //limpa o array
-  
-      querySnapshot.forEach((doc) => { //adiciona todos as pessoas que sao do nono ano no array
-        alunos.push([doc.get("nome"), doc.id])
-      });
-      console.log(`Alunos salvos: ${alunos}`)
-      this.GetStudents()
-    })*/
+    /*    qDependents = query(collection(this.escola, "alunos"), where("turma", 'in', arrDependentes));
+    
+        unsubscribeDependents = onSnapshot(qDependents, (querySnapshot) => {
+          alunos.length = 0 //limpa o array
+      
+          querySnapshot.forEach((doc) => { //adiciona todos as pessoas que sao do nono ano no array
+            alunos.push([doc.get("nome"), doc.id])
+          });
+          console.log(`Alunos salvos: ${alunos}`)
+          this.GetStudents()
+        })*/
     arrayaleatorio = arrDependents
 
     unsubscribeDependents()
@@ -56,7 +56,7 @@ class Consulta {
       this.getDependentsName()
     })
   }
-  
+
   async getDependentsName() {
     alunos.lenght = 0
     console.log(arrayaleatorio)
@@ -69,12 +69,12 @@ class Consulta {
 
       console.log("nome e id:", docSnap.get("nome"), docSnap.id);
       alunos.push([docSnap.get("nome"), docSnap.id])
-  
-      console.log(`Alunos salvos:`,alunos, student)
+
+      console.log(`Alunos salvos:`, alunos, student)
 
       div.innerHTML = "" //Não tira, isso resolve um bug
 
-      if(arrayaleatorio.length == index+1) this.GetStudents()
+      if (arrayaleatorio.length == index + 1) this.GetStudents()
     })
   }
 
@@ -84,33 +84,34 @@ class Consulta {
     alunos.forEach(async (aluno, index) => { //passa por cada aluno
       aluno.length = 2 //limpa o status na escola
       console.log(aluno)
-      const q = query(collection(this.escola, "historico"), where("aluno", "==", aluno[1]), orderBy("hora", "desc"),limit(1)) //filtra e pega o salvo mais recente
+      const q = query(collection(this.escola, "historico"), where("aluno", "==", aluno[1]), orderBy("hora", "desc"), limit(1)) //filtra e pega o salvo mais recente
       const querySnapshot = await getDocs(q) //cria um array com todos os docs
-      
+
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0] //pega o doc mais recente
-  
+
         const docHora = doc.get("hora")
         const docDate = docHora.toDate()
         console.log(docDate)
         console.log(date)
-  
-        if(date.getYear() == docDate.getYear() & date.getMonth() == docDate.getMonth() & date.getDate() == docDate.getDate()) {
+
+        if (date.getYear() == docDate.getYear() & date.getMonth() == docDate.getMonth() & date.getDate() == docDate.getDate()) {
           const status = doc.get("status")
           console.log(doc.id)
           console.log(status)
-  
-          if(status == "naSala") aluno.push(status)
-        } 
+
+          aluno.push(status)
+        }
         else console.log("O aluno não entrou na escola hoje.")
-      } 
+      }
       else aluno.push(undefined)
-  
+
       console.log(aluno)
       console.log(alunos)
-  
-      if(alunos.length == index+1){
-        const alunosComStatus = alunos.filter((alunos) => alunos[2] != undefined)
+
+      if (alunos.length == index + 1) {
+        const alunosComStatus = alunos.filter((aluno) => aluno[2] != undefined)
+        console.log(alunosComStatus)
         this.atualizarAlunos(div, alunosComStatus)
       }
     })
@@ -129,8 +130,9 @@ class Consulta {
 
       div.appendChild(p)
       p.addEventListener("click", async (event) => {
-        console.log("foi")
-        this.alterarHistorico(aluno[1], "Deus")
+        if (aluno[2] == "naSala") {
+          this.alterarHistorico(aluno[1], "Deus")
+        }
       })
     })
   }
@@ -163,14 +165,14 @@ class Consulta {
 }
 const consul = new Consulta("LFplnjWNSN0amNh0Da79")
 
-consul.getDependents(responsavel.value)
+consul.getDependents("kgYLW1fleRzHiNQhSc94")
 
 
 const unsbscribedAtSchool = onSnapshot(collection(consul.escola, "historico"), (snapshot) => { //verifica se o historico foi alterado
   consul.GetStudents()
 })
 
-responsavel.addEventListener("input", (event) => {
+/*responsavel.addEventListener("input", (event) => {
   unsubscribeResponsavel()
   consul.getDependents(event.target.value)
-})
+})*/

@@ -6,5 +6,5 @@
 #include <string>
 #include <vector>
 
-std::string &encode_base64(const std::vector<unsigned char> &data);
-std::string &encode_base64(const cv::Mat &data);
+std::string encode_base64(const std::vector<unsigned char> &data);
+std::string encode_base64(const cv::Mat &data);

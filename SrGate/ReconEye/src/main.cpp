@@ -4,7 +4,9 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio.hpp>
 
+#include <cstdlib>
 #include <filesystem>
+#include <regex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -18,6 +20,31 @@
 #include "db.hpp"
 #include "descriptor.hpp"
 #include "image.hpp"
+#include "logs.hpp"
+
+std::string expand_env_vars(const std::string &input) {
+  std::regex env_var_pattern(R"(\$([A-Za-z_][A-Za-z0-9_]*))");
+  std::string result = input;
+
+  std::smatch match;
+  std::string::const_iterator search_start(result.cbegin());
+
+  while (
+      std::regex_search(search_start, result.cend(), match, env_var_pattern)) {
+    std::string env_var = match[1].str();
+    const char *env_value = std::getenv(env_var.c_str());
+
+    if (env_value) {
+      result.replace(match.position(0), match.length(0), env_value);
+    } else {
+      result.replace(match.position(0), match.length(0), "");
+    }
+
+    search_start = result.cbegin() + match.position(0) + match.length(0);
+  }
+
+  return result;
+}
 
 std::vector<unsigned char> gzip_compress(const std::string &data) {
   uLongf compressed_size = compressBound(data.size());
@@ -45,7 +72,7 @@ int main(int argc, char *argv[]) {
   net _net = create_net();
 
   // Load the descriptor DB
-  DB db = load_db(config["database"]["path"]);
+  DB db = load_db(expand_env_vars(config["database"]["path"]));
 
   // Initialize the cascade model and camera
   std::filesystem::path base = config["opencv"]["models"]["directory"];
@@ -68,8 +95,7 @@ int main(int argc, char *argv[]) {
     // Get the frame
     cap >> frame;
     if (frame.empty()) {
-      std::cerr << "Warning: Received an empty frame from the camera"
-                << std::endl;
+      console::warn("main", "Warning: Received an empty frame from the camera");
       continue;
     }
 
@@ -114,21 +140,29 @@ int main(int argc, char *argv[]) {
 
     nlohmann::json json = {{"matches", matches_array},
                            {"frame", encode_base64(frame)}};
-    std::string serialized = json.dump();
+    std::string serialized;
+    try {
+      serialized = json.dump();
+    } catch (const std::exception &e) {
+      console::error("main", "Error during JSON serialization: " +
+                                 std::string(e.what()));
+    }
     std::vector<unsigned char> data = gzip_compress(serialized);
 
     // Send message
     int sent_bytes = zmq_send(publisher, data.data(), data.size(), 0);
     if (sent_bytes == -1) {
-      std::cerr << "Error: Failed to send data: " << zmq_strerror(zmq_errno())
-                << std::endl;
+      console::error("main", "Error: Failed to send data: " +
+                                 std::string(zmq_strerror(zmq_errno())));
     } else {
-      std::cout << "Sent " << sent_bytes << " bytes" << std::endl;
+      console::success("main",
+                       "Sent " + std::string(zmq_strerror(zmq_errno())));
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 
+  console::log("main", "Releasing components");
   zmq_close(publisher);
   zmq_ctx_destroy(context);
   cap.release();

@@ -1,6 +1,8 @@
 #include "base64.hpp"
+#include <iostream>
+#include <stdexcept>
 
-std::string &base64_encode(const std::vector<unsigned char> &data) {
+std::string encode_base64(const std::vector<unsigned char> &data) {
   static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                           "abcdefghijklmnopqrstuvwxyz"
                                           "0123456789+/";
@@ -22,10 +24,13 @@ std::string &base64_encode(const std::vector<unsigned char> &data) {
   return base64_str;
 }
 
-std::string &base64_encode(const cv::Mat &data) {
+std::string encode_base64(const cv::Mat &data) {
   std::vector<unsigned char> buf;
   cv::imencode(".png", data, buf);
 
-  std::string encoded = base64_encode(buf);
-  return encoded;
+  if (buf.empty()) {
+    throw std::runtime_error("Error: Buffer is empty");
+  }
+
+  return encode_base64(buf);
 }

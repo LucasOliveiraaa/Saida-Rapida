@@ -1,4 +1,5 @@
 #include "db.hpp"
+#include "logs.hpp"
 
 namespace fs = std::filesystem;
 
@@ -25,7 +26,7 @@ DB load_db(const std::string &path) {
 
 std::string get_match(const DB &data, Descriptor *desc) {
   if (!desc) {
-    std::cerr << "Descriptor is null!" << std::endl;
+    console::error("db", "Descriptor is null!");
     return "";
   }
 

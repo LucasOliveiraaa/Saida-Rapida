@@ -1,4 +1,8 @@
 {
+    "ReconEye": {
+        "build": "/home/lucas/SaidaRapida/SrGate/ReconEye/build.bus",
+        "executable": "/home/lucas/SaidaRapida/SrGate/ReconEye/build/ReconEye"
+    },
     "dlib": {
         "models": {
             "directory": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/dlib",
@@ -19,14 +23,14 @@
         }
     },
     "database": {
-        "path": "$HOME_DIR/.config/srgate/database.rl",
+        "path": "$HOME/.config/srgate/database",
         "front_refresh": "always"
     },
     "logging": {
-        "main": "sent",
-        "descriptor": false,
-        "db": false,
-        "base64": false,
-        "image": false
+        "main": "all",
+        "descriptor": "success,error",
+        "db": "error",
+        "base64": "error",
+        "image": "error"
     }
 }
