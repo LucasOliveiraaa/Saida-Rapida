@@ -64,11 +64,11 @@ ul {
 }
 
 .autorizado {
-  background-color: rgb(255, 120, 0);
+  animation: shine 0.75s alternate infinite;
 }
 
 .emTransicao {
-  animation: shine 0.75s alternate infinite;
+  backgtound-color: rgb(255, 120, 0);
 }
 
 @keyframes shine {
