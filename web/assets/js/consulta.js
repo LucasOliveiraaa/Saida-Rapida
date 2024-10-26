@@ -15,7 +15,7 @@ const db = getFirestore();
 
 
 const turma = document.getElementById("turma")
-const div = document.getElementById("estudantes")
+const ul = document.getElementById("students-list")
 
 const alunos = []
 
@@ -39,7 +39,7 @@ class Consulta {
       console.log(`Alunos salvos: ${alunos}`)
       this.GetStudents()
     })
-    div.innerHTML = "" //Não tira, isso resolve um bug
+    ul.innerHTML = "" //Não tira, isso resolve um bug
   }
 
   async GetStudents() {
@@ -73,25 +73,30 @@ class Consulta {
   
       if(alunos.length == index+1){
         const alunosComStatus = alunos.filter((alunos) => alunos[2] != undefined)
-        this.atualizarAlunos(div, alunosComStatus)
+        this.atualizarAlunos(alunosComStatus)
       }
     })
   }
 
-  atualizarAlunos(div, alunos) { //alunos[nome, id, status]
-    div.innerHTML = ""
-    alunos.sort()
-    console.log(alunos)
-    alunos.forEach((aluno) => {
-      console.log(aluno)
-      const p = document.createElement("p")
+  function atuaulzarAlunos(alunos) {
+  console.log(alunos)
+  alunos.sort()
 
-      p.innerText = aluno[0]
-      p.className = aluno[2]
+  ul.innerHTML = ""
+  for (const [name, id, type] of alunos) {
+    const li = document.createElement("li")
+    li.innerText = name
+    li.classList.add("student", type)
 
-      div.appendChild(p)
+    li.addEventListener("click", (ev) => {
+      if (type === "autorizado") {
+        alterarHistorico(ev, id, "Deus")
+      }
     })
+
+    ul.appendChild(li)
   }
+}
 
   RemoverDuplicata(arrTurmas) {
     const turmas = new Set(arrTurmas) //Set é um array sem duplicatas
