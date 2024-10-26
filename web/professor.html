@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Professor</title>
+  <link rel="stylesheet" href="assets/css/default.css">
   <link rel="stylesheet" href="assets/css/professor.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Russo+One&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <header>
-    <h1 class="title">Qual turma deseja consultar?</h1>
+    <a href="./index.html"><img src="assets/img/arrow.svg" alt="Voltar"></a>
+    <h1>Professor</h1>
   </header>
-  <div id="fieldID">
-    <label for="classroom-select">Insira a turma</label> 
-    <select name="Turmas" id="turma">
+  <main class="container">
+    <h2>Qual turma consultar?</h2>
+    <select id="turma">
       <option value="">--Escolha uma turma--</option>
     </select>
-  </div>
-  <div id="estudantes">
-    
-  </div>
+    <ul id="student-list"></ul>
+  </main>
 
   <script type="module" src="assets/js/professor.js"></script>
 </body>
+
 </html>

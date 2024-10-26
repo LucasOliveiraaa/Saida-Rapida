@@ -14,8 +14,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 
 
-const responsavel = document.getElementById("responsavel")
-const div = document.getElementById("estudantes")
+const studentUi = document.querySelector("#student-list")
 
 let alunos = []
 let arrayaleatorio = []
@@ -72,8 +71,6 @@ class Consulta {
 
       console.log(`Alunos salvos:`, alunos, student)
 
-      div.innerHTML = "" //Não tira, isso resolve um bug
-
       if (arrayaleatorio.length == index + 1) this.GetStudents()
     })
   }
@@ -97,8 +94,6 @@ class Consulta {
 
         if (date.getYear() == docDate.getYear() & date.getMonth() == docDate.getMonth() & date.getDate() == docDate.getDate()) {
           const status = doc.get("status")
-          console.log(doc.id)
-          console.log(status)
 
           aluno.push(status)
         }
@@ -106,35 +101,31 @@ class Consulta {
       }
       else aluno.push(undefined)
 
-      console.log(aluno)
-      console.log(alunos)
-
       if (alunos.length == index + 1) {
         const alunosComStatus = alunos.filter((aluno) => aluno[2] != undefined)
         console.log(alunosComStatus)
-        this.atualizarAlunos(div, alunosComStatus)
+        this.atualizarAlunos(alunosComStatus)
       }
     })
   }
 
-  atualizarAlunos(div, alunos) { //alunos[nome, id, status]
-    div.innerHTML = ""
+  atualizarAlunos(alunos) { //alunos[nome, id, status]
     alunos.sort()
-    console.log(alunos)
-    alunos.forEach((aluno) => {
-      console.log(aluno)
-      const p = document.createElement("p")
 
-      p.innerText = aluno[0]
-      p.className = aluno[2]
+    studentUi.innerHTML = ""
+    for (const [name, id, type] of alunos) {
+      const li = document.createElement("li")
+      li.innerText = name
+      li.classList.add("student", type)
 
-      div.appendChild(p)
-      p.addEventListener("click", async (event) => {
-        if (aluno[2] == "naSala") {
-          this.alterarHistorico(aluno[1], "Deus")
+      li.addEventListener("click", () => {
+        if (type === "naSala") {
+          this.alterarHistorico(id, "Deus")
         }
       })
-    })
+
+      studentUi.appendChild(li)
+    }
   }
 
   RemoverDuplicata(arrTurmas) {
@@ -167,12 +158,6 @@ const consul = new Consulta("LFplnjWNSN0amNh0Da79")
 
 consul.getDependents("kgYLW1fleRzHiNQhSc94")
 
-
-const unsbscribedAtSchool = onSnapshot(collection(consul.escola, "historico"), (snapshot) => { //verifica se o historico foi alterado
+onSnapshot(collection(consul.escola, "historico"), () => { //verifica se o historico foi alterado
   consul.GetStudents()
 })
-
-/*responsavel.addEventListener("input", (event) => {
-  unsubscribeResponsavel()
-  consul.getDependents(event.target.value)
-})*/

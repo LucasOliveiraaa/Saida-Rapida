@@ -1,36 +1,50 @@
 {
-    "ReconEye": {
-        "build": "/home/lucas/SaidaRapida/SrGate/ReconEye/build.bus",
-        "executable": "/home/lucas/SaidaRapida/SrGate/ReconEye/build/ReconEye"
-    },
-    "dlib": {
-        "models": {
-            "directory": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/dlib",
-            "shape_predictor": "shape_predictor_5_face_landmarks.dat",
-            "anet": "dlib_face_recognition_resnet_model_v1.dat"
-        }
-    },
-    "opencv": {
-        "models": {
-            "directory": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/opencv",
-            "haarcascade": "frontalface.xml"
-        },
-        "camera": {
-            "width": "auto",
-            "height": "auto",
-            "fps": "auto",
-            "device": 0
-        }
+    "build": "/home/lucas/SaidaRapida/SrGate/ReconEye/build.bus",
+    "executable": "/home/lucas/SaidaRapida/SrGate/ReconEye/build/ReconEye",
+    "capture": {
+        "device": 0,
+        "width": "auto",
+        "height": "auto",
+        "fps": "auto",
+        "reload-trackers": 10
     },
     "database": {
         "path": "$HOME/.config/srgate/database",
-        "front_refresh": "always"
+        "type": "local"
+    },
+    "dlib-models": {
+        "chip-extractor": {
+            "size": 150,
+            "padding": 0.25
+        },
+        "shape-predictor": {
+            "path": {
+                "low": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/dlib/shape_predictor_5_face_landmarks.dat",
+                "high": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/dlib/shape_predictor_68_face_landmarks.dat"
+            }
+        },
+        "face-recognition": {
+            "path": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/dlib/dlib_face_recognition_resnet_model_v1.dat"
+        }
+    },
+    "opencv-models": {
+        "frontal-detector": {
+            "path": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/opencv/frontalface.xml",
+            "scale-factor": 1.1,
+            "min-neighbors": 5
+        },
+        "profile-detector": {
+            "path": "/home/lucas/SaidaRapida/SrGate/ReconEye/models/opencv/profileface.xml",
+            "scale-factor": 1.1,
+            "min-neighbors": 5
+        }
     },
     "logging": {
-        "main": "all",
+        "main": "error,info",
         "descriptor": "success,error",
         "db": "error",
         "base64": "error",
-        "image": "error"
+        "image": "error",
+        "tracker": "all"
     }
 }

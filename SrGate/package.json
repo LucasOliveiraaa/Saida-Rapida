@@ -1,0 +1,17 @@
+{
+  "name": "srgate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "electron ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^33.0.2",
+    "firebase-admin": "^12.6.0",
+    "pako": "^2.1.0",
+    "zeromq": "^6.1.1"
+  }
+}

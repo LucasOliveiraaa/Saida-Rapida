@@ -1,14 +1,10 @@
-#include <chrono>
-
 #include <opencv2/objdetect.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/videoio.hpp>
 
 #include <cstdlib>
-#include <filesystem>
-#include <regex>
+#include <mutex>
 #include <string>
-#include <thread>
 #include <vector>
 #include <zlib.h>
 #include <zmq.h>
@@ -17,34 +13,13 @@
 
 #include "base64.hpp"
 #include "config.hpp"
+#include "console.hpp"
 #include "db.hpp"
 #include "descriptor.hpp"
+#include "future.hpp"
 #include "image.hpp"
-#include "logs.hpp"
-
-std::string expand_env_vars(const std::string &input) {
-  std::regex env_var_pattern(R"(\$([A-Za-z_][A-Za-z0-9_]*))");
-  std::string result = input;
-
-  std::smatch match;
-  std::string::const_iterator search_start(result.cbegin());
-
-  while (
-      std::regex_search(search_start, result.cend(), match, env_var_pattern)) {
-    std::string env_var = match[1].str();
-    const char *env_value = std::getenv(env_var.c_str());
-
-    if (env_value) {
-      result.replace(match.position(0), match.length(0), env_value);
-    } else {
-      result.replace(match.position(0), match.length(0), "");
-    }
-
-    search_start = result.cbegin() + match.position(0) + match.length(0);
-  }
-
-  return result;
-}
+#include "performance.hpp"
+#include "tracker.hpp"
 
 std::vector<unsigned char> gzip_compress(const std::string &data) {
   uLongf compressed_size = compressBound(data.size());
@@ -66,31 +41,33 @@ std::vector<unsigned char> gzip_compress(const std::string &data) {
 
 int main(int argc, char *argv[]) {
   // Open config file
-  auto config = Config::get_instance().get();
+  auto config = Config::getInstance().get();
 
-  // Initialize the Net Type
-  net _net = create_net();
+  // Initialize the Net Type and Database
+  console::log("main", "Creating Net and loading DB");
+  Net net;
+  DB db = load_db(Config::env_vars(config["database"]["path"]));
+  std::mutex mtx_net, mtx_db;
 
-  // Load the descriptor DB
-  DB db = load_db(expand_env_vars(config["database"]["path"]));
-
-  // Initialize the cascade model and camera
-  std::filesystem::path base = config["opencv"]["models"]["directory"];
-  std::filesystem::path haarcascade = config["opencv"]["models"]["haarcascade"];
-  cv::CascadeClassifier cascade((base / haarcascade).string());
-  cv::VideoCapture cap(config["opencv"]["camera"]["device"].get<int>());
-
+  console::log("main", "Opening video capture");
+  cv::VideoCapture cap(config["capture"]["device"].get<int>());
   if (!cap.isOpened()) {
     std::cerr << "Error: Failed to open camera" << std::endl;
     return -1;
   }
 
+  console::log("main", "Creating Future and Tracker");
+  Future future;
+  Tracker tracker;
+
+  console::log("main", "Starting ZeroMQ");
   void *context = zmq_ctx_new();
   void *publisher = zmq_socket(context, ZMQ_PUB);
   int rc = zmq_bind(publisher, "tcp://*:5555");
   assert(rc == 0);
 
   cv::Mat frame;
+  int count = 0;
   while (true) {
     // Get the frame
     cap >> frame;
@@ -99,52 +76,83 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    // Run a Haarcascade to recognize faces
-    std::vector<cv::Rect> faces_rects;
-    cascade.detectMultiScale(frame, faces_rects, 1.1, 2,
-                             0 | cv::CASCADE_DO_ROUGH_SEARCH |
-                                 cv::CASCADE_SCALE_IMAGE,
-                             cv::Size(30, 30));
+    count++;
+    Performance::getInstance().addPoint();
+    console::info("main", "Current performance: " +
+                              std::to_string(
+                                  Performance::getInstance().getPerformance()));
 
-    // Highlight all faces and crop the frame to separate them
-    std::vector<cv::Mat> faces;
-    for (const auto &rect : faces_rects) {
-      faces.push_back(frame(rect));
-      cv::rectangle(frame, rect, cv::Scalar(0, 0, 255), 1);
+    console::log("main", "Testing tracker reload");
+    if (count % config["capture"]["reload-trackers"].get<int>() == 0 ||
+        !tracker.haveTrackers()) {
+      console::log("main", "Updating Trackers");
+      tracker.updateTrackers(frame);
+
+      continue;
     }
 
-    std::vector<nlohmann::json> matches_array;
-    for (const auto &face : faces) {
-      // Describe face
-      Image dlib_img = to_dlib(face);
-      Descriptor *desc = Descriptor::fromFace(dlib_img, _net);
+    console::log("main", "Starting description");
 
-      if (!desc) {
-        continue;
+    // Highlight all faces and descript them
+    std::vector<nlohmann::json> descriptions;
+    std::mutex mtx_descs;
+
+    std::vector<cv::Rect> face_rects = tracker.getFaces(frame);
+    for (size_t i = 0; i < face_rects.size(); i++) {
+      cv::Rect face_rect = face_rects[i];
+      bool is_main_rect = i == 0;
+
+      if (is_main_rect) {
+        console::log("main", " -> Main Face!");
+        cv::rectangle(frame, face_rect, cv::Scalar(0, 255, 0), 1);
+      } else {
+        cv::rectangle(frame, face_rect, cv::Scalar(0, 0, 255), 1);
       }
 
-      // Match descriptor
-      std::string id = get_match(db, desc);
+      console::log("main", "Adding future");
+      future.push([&]() {
+        cv::Mat cv_face = frame(face_rect);
+        Image face = to_dlib(cv_face);
 
-      if (id.empty())
-        continue;
+        Descriptor *desc = nullptr;
+        {
+          std::lock_guard<std::mutex> guard(mtx_net);
+          desc = Descriptor::fromFace(face, net);
+        }
 
-      std::vector<unsigned char> binary = desc->bytes();
-      std::string binary_encoded = encode_base64(binary);
+        if (!desc) {
+          console::log("main", " -> Main: Descriptor: Anything descripted");
+          return;
+        }
 
-      nlohmann::json match_obj;
-      match_obj["id"] = id;
-      match_obj["binary"] = binary_encoded;
-      matches_array.push_back(match_obj);
+        std::string id = "";
+        {
+          std::lock_guard<std::mutex> guard(mtx_db);
+          id = get_match(db, desc);
+        }
+
+        console::log("main", "Creating description json");
+        nlohmann::json description;
+        description["main"] = is_main_rect;
+        description["id"] = id;
+        description["data"] = encode_base64(desc->bytes());
+
+        std::lock_guard<std::mutex> guard(mtx_descs);
+        descriptions.push_back(description);
+      });
     }
 
-    nlohmann::json json = {{"matches", matches_array},
-                           {"frame", encode_base64(frame)}};
+    future.await();
+
+    nlohmann::json json;
+    json["frame"] = encode_base64(frame);
+    json["descriptions"] = descriptions;
+
     std::string serialized;
     try {
       serialized = json.dump();
     } catch (const std::exception &e) {
-      console::error("main", "Error during JSON serialization: " +
+      console::error("main", "Error: Failed to serialize JSON: " +
                                  std::string(e.what()));
     }
     std::vector<unsigned char> data = gzip_compress(serialized);
@@ -155,11 +163,10 @@ int main(int argc, char *argv[]) {
       console::error("main", "Error: Failed to send data: " +
                                  std::string(zmq_strerror(zmq_errno())));
     } else {
-      console::success("main",
-                       "Sent " + std::string(zmq_strerror(zmq_errno())));
+      console::success("main", "Sent " + std::to_string(sent_bytes));
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    count++;
   }
 
   console::log("main", "Releasing components");

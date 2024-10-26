@@ -13,7 +13,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 
-const div = document.getElementById("estudantes")
+const studentUi = document.querySelector("#student-list")
 
 const alunos = []
 
@@ -34,7 +34,7 @@ class Consulta {
       console.log(`Alunos salvos: ${alunos}`)
       this.GetStudents()
     })
-    div.innerHTML = "" //Não tira, isso resolve um bug
+    studentUi.innerHTML = "" //Não tira, isso resolve um bug
   }
 
   async GetStudents() {
@@ -68,29 +68,26 @@ class Consulta {
 
       if (alunos.length == index + 1) {
         const alunosComStatus = alunos.filter((alunos) => alunos[2] != undefined)
-        this.atualizarAlunos(div, alunosComStatus)
+        this.atualizarAlunos(alunosComStatus)
       }
     })
   }
 
-  atualizarAlunos(div, alunos) { //alunos[nome, id, status]
-    div.innerHTML = ""
+  atualizarAlunos(alunos) {
     alunos.sort()
-    console.log(alunos)
-    alunos.forEach((aluno) => {
-      console.log(aluno)
-      const p = document.createElement("p")
 
-      p.innerText = aluno[0]
-      p.className = aluno[2]
+    studentUi.innerHTML = ""
+    for (const [name, id, type] of alunos) {
+      const li = document.createElement("li")
+      li.innerText = name
+      li.classList.add("student", type)
 
-      div.appendChild(p)
-      p.addEventListener("click", async (event) => {
-        if (aluno[2] == "emTransicao") {
-          this.alterarHistorico(aluno[1], "Deus")
-        }
+      li.addEventListener("click", () => {
+        this.alterarHistorico(id, "Deus")
       })
-    })
+
+      studentUi.appendChild(li)
+    }
   }
 
   dateDate(IDAluno) {
@@ -103,7 +100,7 @@ class Consulta {
     console.log(`dia: ${day}, mês: ${month}, ano: ${year}, hora: ${hour}, minuto ${minutes}, segundo: ${seconds}`)
     return `${day}${month}${year}${hour}${minutes}${seconds}${IDAluno}`
   }
-  //Ezequi
+
   async alterarHistorico(alunoID, autorizadoPor) {
     await setDoc(doc(this.escola, "historico", this.dateDate(alunoID)), {
       aluno: alunoID,

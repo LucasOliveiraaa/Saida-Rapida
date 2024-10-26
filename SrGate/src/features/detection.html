@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sr. Gate - Detector</title>
+    <link rel="stylesheet" href="../assets/css/detection.css">
+</head>
+
+<body>
+    <div class="popup" id="reconeye-disconected">
+        <div class="contents">
+            <div class="topper">
+                <img src="../assets/img/warn.svg">
+                <h2>Desconectado</h2>
+            </div>
+            <div class="content">
+                <p>Identificamos que o servidor ReconEye foi desconectado, sem ele não é possivel realizar a
+                    detecção.
+                </p>
+                <p>Tentando reconectar em <span id="timeout" class="timeout"></span>s</p>
+                <div class="btns">
+                    <a href="../board.html" class="button"><img src="../assets/img/arrow.svg"> Voltar a tela
+                        principal</a>
+                    <button href="#" class="button" id="reload"><img src="../assets/img/reload.svg"> Tentar
+                        conectar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <main class="container">
+        <section class="board" style="align-self: flex-start;background: transparent;">
+            <a href="../board.html" class="back-arrow"><img src="../assets/img/arrow.svg"></a>
+        </section>
+        <section class="section">
+            <div class="board detections-board">
+                <h2>Detecções</h2>
+                <ul id="detections">
+                </ul>
+            </div>
+            <div class="board camera">
+                <h2>Camera</h2>
+                <img id="camera">
+            </div>
+        </section>
+        <section class="status-bar">
+            <ul>
+                <li class="status">ReconEye: <span id="reconeye" class="status-error">Desconectado</span></li>
+                <li class="status">Base de dados: <span id="database" class="status-error">Desconectado</span>
+                </li>
+                <li class="status">FPS: <span id="fps" class="status-warn">0</span></li>
+                <li class="status">Traking: <span id="traking-status" class="status-warn">[OAuth failed]</span></li>
+            </ul>
+        </section>
+    </main>
+    <script src="../assets/js/detection.js"></script>
+</body>
+
+</html>

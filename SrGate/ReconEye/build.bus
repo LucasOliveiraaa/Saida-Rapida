@@ -9,12 +9,14 @@ includes /usr/include/opencv4
 
 # Adding OpenCV compile flags
 assign opencv_cflags run "pkg-config --cflags opencv4"
-use compiler_flags (opencv_cflags)
+use compiler_flags (opencv_cflags) "-pg"
 
 # Adding OpenCV libs, Dlib, Zlib, ZeroMQ and Openblas
 assign opencv_libs run "pkg-config --libs opencv4"
 push link_libs (opencv_libs)
 push link_libs "-lopenblas -ldlib -lzmq -lz"
+
+use linker_flags "-pg"
 
 # Setting sources
 includes include
