@@ -78,25 +78,19 @@ class Consulta {
     })
   }
 
-  function atuaulzarAlunos(alunos) {
-  console.log(alunos)
-  alunos.sort()
-
-  ul.innerHTML = ""
-  for (const [name, id, type] of alunos) {
-    const li = document.createElement("li")
-    li.innerText = name
-    li.classList.add("student", type)
-
-    li.addEventListener("click", (ev) => {
-      if (type === "autorizado") {
-        alterarHistorico(ev, id, "Deus")
-      }
-    })
-
-    ul.appendChild(li)
+  atuaulzarAlunos(alunos) {
+    console.log(alunos)
+    alunos.sort()
+  
+    ul.innerHTML = ""
+    for (const [name, id, type] of alunos) {
+      const li = document.createElement("li")
+      li.innerText = name
+      li.classList.add("student", type)
+      
+      ul.appendChild(li)
+    }
   }
-}
 
   RemoverDuplicata(arrTurmas) {
     const turmas = new Set(arrTurmas) //Set é um array sem duplicatas
