@@ -9,6 +9,7 @@ body{
 
 header{
   margin: 0;
+  display: flex;
 }
 
 .title{
@@ -70,8 +71,8 @@ header{
 }
 
 @keyframes shine {
-  from {background-color: rgba(224, 224, 45, 0.2); /*#E0E02D*/}
-  to {background-color: rgb(224, 224, 45, 1); /*#E0E02D*/}
+  from {background-color: rgb(255, 120, 0, 0); /*#E0E02D*/}
+  to {background-color: rgb(255, 239, 0); /*#E0E02D*/}
 }
 
 .naEscola{
@@ -84,15 +85,15 @@ header{
 
 .autorizado{
   animation-name: shine;
-  animation-duration: 2s;
+  animation-duration: 1s;
   animation-direction: alternate;
   animation-iteration-count: infinite;
 }
 
 .emTransicao{
-  background-color: rgb(224, 224, 45); /*#E0E02D*/
+  background-color: rgb(255, 120, 0); /*#E0E02D HEX ERRADO*/
 }
 
 .foraDaEscola{
-  background-color: rgb(255, 90, 90); /*#FF5A5A*/
+  background-color: rgb(255, 31, 31); /*#FF5A5A*/
 }

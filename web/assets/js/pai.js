@@ -20,7 +20,7 @@ const div = document.getElementById("estudantes")
 let alunos = []
 let arrayaleatorio = []
 
-let unsubscribeResponsavel //Vai na fé e fodasse
+let unsubscribeResponsavel //Vai na fé
 let unsubscribeDependents = onSnapshot(collection(db, "NIL"), () => { }) //ta funcionando, não mexe
 
 class Consulta {
