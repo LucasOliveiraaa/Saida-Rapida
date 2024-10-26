@@ -78,7 +78,7 @@ class Consulta {
     })
   }
 
-  atuaulzarAlunos(alunos) {
+  atualizarAlunos(alunos) {
     console.log(alunos)
     alunos.sort()
   
