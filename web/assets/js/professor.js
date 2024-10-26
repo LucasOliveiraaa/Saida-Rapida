@@ -89,7 +89,8 @@ async function getStudents() {
     console.log(alunos)
 
     if (alunos.length == index + 1) {
-      atuaulzarAlunos(alunos)
+      const alunosComStatus = alunos.filter((aluno) => aluno[2] != undefined)
+      atuaulzarAlunos(alunosComStatus)
     }
   })
 }
