@@ -63,7 +63,10 @@ ul {
   background-color: #f32e2e;
 }
 
-.autorizado,
+.autorizado {
+  backgtound-color: rgb(255, 120, 0);
+}
+
 .emTransicao {
   animation: shine 0.75s alternate infinite;
 }
