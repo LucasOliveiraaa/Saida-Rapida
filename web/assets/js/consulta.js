@@ -39,7 +39,7 @@ class Consulta {
       console.log(`Alunos salvos: ${alunos}`)
       this.GetStudents()
     })
-    ul.innerHTML = "" //Não tira, isso resolve um bug
+    ul.innerHTML = "" //Não tira, isso resolve um bug, sem isso da duplicata 
   }
 
   async GetStudents() {
